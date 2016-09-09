@@ -816,6 +816,112 @@ extension SignalProtocol where Error == NoError {
 	}
 }
 
+extension SignalProtocol where Value: OptionalProtocol {
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting producers (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the returned
+	/// signal.
+	///
+	/// If `signal` or any of the created producers fail, the returned signal
+	/// will forward that failure immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, Error>?) -> Signal<U?, Error> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting producers (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, a `nil` would be propagated to the
+	/// returned signal.
+	///
+	/// If `signal` fails, the returned signal will forward that failure
+	/// immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, NoError>?) -> Signal<U?, Error> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting signals (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	///
+	/// If `signal` or any of the created signals emit an error, the returned
+	/// signal will forward that error immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, Error>?) -> Signal<U, Error> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting signals (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	///
+	/// If `signal` emits an error, the returned signal will forward that
+	/// error immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, NoError>?) -> Signal<U, Error> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+}
+
+extension SignalProtocol where Value: OptionalProtocol, Error == NoError {
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting signals (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the
+	/// returned signal.
+	///
+	/// If any of the created signals emit an error, the returned signal
+	/// will forward that error immediately.
+	public func flatMap<U, E>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, E>?) -> Signal<U?, E> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting signals (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the
+	/// returned signal.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, NoError>?) -> Signal<U?, NoError> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting signals (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	///
+	/// If any of the created signals emit an error, the returned signal
+	/// will forward that error immediately.
+	public func flatMap<U, E>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, E>?) -> Signal<U, E> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `signal` to a new signal, then flattens the
+	/// resulting signals (into a signal of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, NoError>?) -> Signal<U, NoError> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+}
+
 extension SignalProducerProtocol {
 	/// Maps each event from `self` to a new producer, then flattens the
 	/// resulting producers (into a producer of values), according to the
@@ -894,6 +1000,112 @@ extension SignalProducerProtocol where Error == NoError {
 	}
 }
 
+extension SignalProducerProtocol where Value: OptionalProtocol {
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting producers (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the
+	/// returned signal.
+	///
+	/// If `self` or any of the created producers fail, the returned producer
+	/// will forward that failure immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, Error>?) -> SignalProducer<U?, Error> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting producers (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the
+	/// returned signal.
+	///
+	/// If `self` fails, the returned producer will forward that failure
+	/// immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, NoError>?) -> SignalProducer<U?, Error> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting signals (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	///
+	/// If `self` or any of the created signals emit an error, the returned
+	/// producer will forward that error immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, Error>?) -> SignalProducer<U, Error> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting signals (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	///
+	/// If `self` emits an error, the returned producer will forward that
+	/// error immediately.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, NoError>?) -> SignalProducer<U, Error> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+}
+
+extension SignalProducerProtocol where Value: OptionalProtocol, Error == NoError {
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting producers (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the
+	/// returned signal.
+	///
+	/// If any of the created producers fail, the returned producer will
+	/// forward that failure immediately.
+	public func flatMap<U, E>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, E>?) -> SignalProducer<U?, E> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting producers (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped producer is `nil`, it would be propagated to the
+	/// returned signal.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> SignalProducer<U, NoError>?) -> SignalProducer<U?, NoError> {
+		return map { transform($0)?.optionalize() ?? SignalProducer(value: nil) }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting signals (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	///
+	/// If any of the created signals emit an error, the returned
+	/// producer will forward that error immediately.
+	public func flatMap<U, E>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, E>?) -> SignalProducer<U, E> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+
+	/// Maps each event from `self` to a new producer, then flattens the
+	/// resulting signals (into a producer of values), according to the
+	/// semantics of the given strategy.
+	///
+	/// If the mapped signal is `nil`, it would be ignored silently.
+	public func flatMap<U>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> Signal<U, NoError>?) -> SignalProducer<U, NoError> {
+		return map { transform($0) ?? .empty }
+			.flatten(strategy)
+	}
+}
+
 extension PropertyProtocol {
 	/// Maps each property from `self` to a new property, then flattens the
 	/// resulting properties (into a single property), according to the
@@ -906,6 +1118,21 @@ extension PropertyProtocol {
 	/// - returns: A property that sends the values of its inner properties.
 	public func flatMap<P: PropertyProtocol>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> P) -> Property<P.Value> {
 		return lift { $0.flatMap(strategy) { transform($0).producer } }
+	}
+}
+
+extension PropertyProtocol where Value: OptionalProtocol {
+	/// Maps each property from `self` to a new property, then flattens the
+	/// resulting properties (into a single property), according to the
+	/// semantics of the given strategy.
+	///
+	/// - parameters:
+	///   - strategy: The preferred flatten strategy.
+	///   - transform: The transform to be applied on `self` before flattening.
+	///
+	/// - returns: A property that sends the values of its inner properties.
+	public func flatMap<P: PropertyProtocol>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> P?) -> Property<P.Value?> {
+		return lift { $0.flatMap(strategy) { transform($0)?.producer } }
 	}
 }
 
