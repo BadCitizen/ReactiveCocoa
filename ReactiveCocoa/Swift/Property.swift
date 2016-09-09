@@ -46,7 +46,7 @@ extension MutablePropertyProtocol {
 /// any intermediate property during the composition.
 extension PropertyProtocol {
 	/// Lifts a unary SignalProducer operator to operate upon PropertyProtocol instead.
-	fileprivate func lift<U>(_ transform: @escaping (SignalProducer<Value, NoError>) -> SignalProducer<U, NoError>) -> Property<U> {
+	internal func lift<U>(_ transform: @escaping (SignalProducer<Value, NoError>) -> SignalProducer<U, NoError>) -> Property<U> {
 		return Property(self, transform: transform)
 	}
 
@@ -132,33 +132,7 @@ extension PropertyProtocol where Value: Equatable {
 	}
 }
 
-extension PropertyProtocol where Value: PropertyProtocol {
-	/// Flattens the inner property held by `self` (into a single property of
-	/// values), according to the semantics of the given strategy.
-	///
-	/// - parameters:
-	///   - strategy: The preferred flatten strategy.
-	///
-	/// - returns: A property that sends the values of its inner properties.
-	public func flatten(_ strategy: FlattenStrategy) -> Property<Value.Value> {
-		return lift { $0.flatMap(strategy) { $0.producer } }
-	}
-}
-
 extension PropertyProtocol {
-	/// Maps each property from `self` to a new property, then flattens the
-	/// resulting properties (into a single property), according to the
-	/// semantics of the given strategy.
-	///
-	/// - parameters:
-	///   - strategy: The preferred flatten strategy.
-	///   - transform: The transform to be applied on `self` before flattening.
-	///
-	/// - returns: A property that sends the values of its inner properties.
-	public func flatMap<P: PropertyProtocol>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> P) -> Property<P.Value> {
-		return lift { $0.flatMap(strategy) { transform($0).producer } }
-	}
-
 	/// Forward only those values from `self` that have unique identities across
 	/// the set of all values that have been held.
 	///

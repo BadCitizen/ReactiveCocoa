@@ -320,6 +320,19 @@ extension SignalProducerProtocol where Value: Sequence, Error == NoError {
 	}
 }
 
+extension PropertyProtocol where Value: PropertyProtocol {
+	/// Flattens the inner property held by `self` (into a single property of
+	/// values), according to the semantics of the given strategy.
+	///
+	/// - parameters:
+	///   - strategy: The preferred flatten strategy.
+	///
+	/// - returns: A property that sends the values of its inner properties.
+	public func flatten(_ strategy: FlattenStrategy) -> Property<Value.Value> {
+		return lift { $0.flatMap(strategy) { $0.producer } }
+	}
+}
+
 extension SignalProtocol where Value: SignalProducerProtocol, Error == Value.Error {
 	/// Returns a signal which sends all the values from producer signal emitted
 	/// from `signal`, waiting until each inner producer completes before
@@ -881,6 +894,20 @@ extension SignalProducerProtocol where Error == NoError {
 	}
 }
 
+extension PropertyProtocol {
+	/// Maps each property from `self` to a new property, then flattens the
+	/// resulting properties (into a single property), according to the
+	/// semantics of the given strategy.
+	///
+	/// - parameters:
+	///   - strategy: The preferred flatten strategy.
+	///   - transform: The transform to be applied on `self` before flattening.
+	///
+	/// - returns: A property that sends the values of its inner properties.
+	public func flatMap<P: PropertyProtocol>(_ strategy: FlattenStrategy, transform: @escaping (Value) -> P) -> Property<P.Value> {
+		return lift { $0.flatMap(strategy) { transform($0).producer } }
+	}
+}
 
 extension SignalProtocol {
 	/// Catches any failure that may occur on the input signal, mapping to a new
